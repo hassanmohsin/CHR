@@ -9,7 +9,9 @@ from CHR.ray import XrayClassification
 
 parser = argparse.ArgumentParser(description='CHR Training')
 parser.add_argument('--data', metavar='DIR', required=True,
-                    help='path to dataset (e.g. ../data/')
+                    help='path to dataset (e.g. ../data')
+parser.add_argument('--model_path', metavar='DIR', required=True,
+                    help='path to saved models (e.g. ./models')
 parser.add_argument('--image-size', '-i', default=224, type=int,
                     metavar='N', help='image size (default: 224)')
 parser.add_argument('-j', '--workers', default=4, type=int, metavar='N',
@@ -90,7 +92,7 @@ def main_ray():
 
     state = {'batch_size': args.batch_size, 'image_size': args.image_size, 'max_epochs': args.epochs,
              'evaluate': args.evaluate, 'resume': args.resume, 'difficult_examples': True,
-             'save_model_path': './models', 'epoch_step': {20}}
+             'save_model_path': args.model_path, 'epoch_step': {20}}
 
     engine = MultiLabelMAPEngine(state)
     engine.learning(model, criterion, train_dataset, val_dataset, optimizer)
