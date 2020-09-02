@@ -5,7 +5,7 @@
 ![Illustration](Illustration.png)
 
 ## Requirements
-[Conda virtual environment](https://conda.io/docs/user-guide/tasks/manage-environments.html) is recommended: `conda env create -f environment.yml`
+[Conda virtual environment](https://conda.io/docs/user-guide/tasks/manage-environments.html) is recommended: `conda env create -f environment.yml` and then `pip install -r requirements.txt`
 
 * Python3.5
 * PyTorch: 0.3.1

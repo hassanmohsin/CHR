@@ -1,8 +1,9 @@
 import csv
+import errno
+import os
 import os.path
 
 import numpy as np
-import os
 import torch
 import torch.utils.data as data
 from PIL import Image
@@ -74,18 +75,21 @@ class XrayClassification(data.Dataset):
         self.target_transform = target_transform
 
         # define path of csv file
-        path_csv = os.path.join(self.root, 'ImageSet', 'train_test_10-5')
+        path_csv = os.path.join(self.root, 'ImageSet', '10')
         # define filename of csv file
         file_csv = os.path.join(path_csv, set + '.csv')
 
         # create the csv file if necessary
-        if not os.path.exists(file_csv):
-            if not os.path.exists(path_csv):  # create dir if necessary
-                os.makedirs(path_csv)
-            # generate csv file
-            labeled_data = read_object_labels_csv(self.root, self.set)
-            # write csv file
-            write_object_labels_csv(file_csv, labeled_data)
+        # (hassanmohsin) Following block is broken, so commenting out
+        # if not os.path.exists(file_csv):
+        #     if not os.path.exists(path_csv):  # create dir if necessary
+        #         os.makedirs(path_csv)
+        #     # generate csv file
+        #     labeled_data = read_object_labels_csv(self.root, self.set)
+        #     # write csv file
+        #     write_object_labels_csv(file_csv, labeled_data)
+        if not os.path.isfile(file_csv):
+            raise FileNotFoundError(errno.ENOENT, os.strerror(errno.ENOENT), file_csv)
 
         self.classes = object_categories
         self.images = read_object_labels_csv(file_csv)
