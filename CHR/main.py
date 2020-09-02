@@ -8,7 +8,7 @@ from CHR.models import resnet101_CHR
 from CHR.ray import XrayClassification
 
 parser = argparse.ArgumentParser(description='CHR Training')
-parser.add_argument('--data', metavar='DIR', default='./dataset/',
+parser.add_argument('--data', metavar='DIR', required=True,
                     help='path to dataset (e.g. ../data/')
 parser.add_argument('--image-size', '-i', default=224, type=int,
                     metavar='N', help='image size (default: 224)')
@@ -30,7 +30,7 @@ parser.add_argument('--weight-decay', '--wd', default=1e-4, type=float,
                     metavar='W', help='weight decay (default: 1e-4)')
 parser.add_argument('--print-freq', '-p', default=0, type=int,
                     metavar='N', help='print frequency (default: 10)')
-parser.add_argument('--resume', default='', type=str, metavar='PATH',
+parser.add_argument('--resume', default='./models/checkpoint.pth.tar', type=str, metavar='PATH',
                     help='path to latest checkpoint (default: none)')
 parser.add_argument('-e', '--evaluate', dest='evaluate', action='store_true',
                     help='evaluate model on validation set')
@@ -68,9 +68,6 @@ class MultiLabelSoftMarginLoss(_WeightedLoss):
 def main_ray():
     global args, best_prec1, use_gpu
     args = parser.parse_args()
-
-    args.data = '/data2/mhassan/dhs/datasets/sixray/dataset'
-    args.resume = './models/checkpoint.pth.tar'
 
     use_gpu = torch.cuda.is_available()
 
