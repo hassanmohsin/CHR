@@ -32,7 +32,7 @@ parser.add_argument('--weight-decay', '--wd', default=1e-4, type=float,
                     metavar='W', help='weight decay (default: 1e-4)')
 parser.add_argument('--print-freq', '-p', default=0, type=int,
                     metavar='N', help='print frequency (default: 10)')
-parser.add_argument('--resume', default='./models/checkpoint.pth.tar', type=str, metavar='PATH',
+parser.add_argument('--resume', type=str, metavar='PATH',
                     help='path to latest checkpoint (default: none)')
 parser.add_argument('-e', '--evaluate', dest='evaluate', action='store_true',
                     help='evaluate model on validation set')
@@ -92,7 +92,8 @@ def main_ray():
 
     state = {'batch_size': args.batch_size, 'image_size': args.image_size, 'max_epochs': args.epochs,
              'evaluate': args.evaluate, 'resume': args.resume, 'difficult_examples': True,
-             'save_model_path': args.model_path, 'epoch_step': {20}}
+             'save_model_path': args.model_path, 'epoch_step': {20}, "train_workers": args.workers, "test_workers": args.workers,
+             'multi_gpu': True, "device_ids": [0, 1, 2, 3, 4, 5, 6, 7]}
 
     engine = MultiLabelMAPEngine(state)
     engine.learning(model, criterion, train_dataset, val_dataset, optimizer)
