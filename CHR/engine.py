@@ -89,7 +89,7 @@ class Engine(object):
 
         # record loss
         self.state['loss_batch'] = self.state['loss'].data
-        self.state['meter_loss'].add(self.state['loss_batch'])
+        self.state['meter_loss'].add(self.state['loss_batch'].cpu())
 
         if display and self.state['print_freq'] != 0 and self.state['iteration'] % self.state['print_freq'] == 0:
             loss = self.state['meter_loss'].value()[0]
@@ -271,7 +271,7 @@ class Engine(object):
             self.on_start_batch(True, model, criterion, data_loader, optimizer)
 
             if self.state['use_gpu']:
-                self.state['target'] = self.state['target'].cuda(async=True)
+                self.state['target'] = self.state['target'].cuda()
                 self.on_forward(True, model, criterion, data_loader, optimizer)
 
                 # measure elapsed time
@@ -306,7 +306,7 @@ class Engine(object):
             self.on_start_batch(False, model, criterion, data_loader)
 
             if self.state['use_gpu']:
-                self.state['target'] = self.state['target'].cuda(async=True)
+                self.state['target'] = self.state['target'].cuda()
 
                 self.on_forward(False, model, criterion, data_loader)
 
@@ -497,7 +497,7 @@ class MultiLabelMAPEngine(Engine):
                 # print(self.state['epoch'], loss.cpu().numpy()[0], map)
                 print('Epoch: [{0}]\t'
                       'Loss {loss:.4f}\t'
-                      'mAP {map:.3f}'.format(self.state['epoch'], loss=loss.cpu().numpy()[0], map=map))
+                      'mAP {map:.3f}'.format(self.state['epoch'], loss=loss.cpu().numpy(), map=map))
             else:
                 # print(self.state['ap_meter'].value())
 

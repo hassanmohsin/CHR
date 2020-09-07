@@ -93,7 +93,7 @@ def main_ray():
     state = {'batch_size': args.batch_size, 'image_size': args.image_size, 'max_epochs': args.epochs,
              'evaluate': args.evaluate, 'resume': args.resume, 'difficult_examples': True,
              'save_model_path': args.model_path, 'epoch_step': {20}, "train_workers": args.workers, "test_workers": args.workers,
-             'multi_gpu': True, "device_ids": [0, 1, 2, 3, 4, 5, 6, 7]}
+             'multi_gpu': True, "device_ids": [0, 1, 2, 3]}
 
     engine = MultiLabelMAPEngine(state)
     engine.learning(model, criterion, train_dataset, val_dataset, optimizer)
