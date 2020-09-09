@@ -10,9 +10,12 @@ import torch.optim
 import torch.utils.data
 import torchnet as tnt
 import torchvision.transforms as transforms
+from torch.utils.tensorboard import SummaryWriter
 from tqdm import tqdm
 
 from CHR.util import AveragePrecisionMeter, Warp
+
+writer = SummaryWriter("./tensorboard_logs")
 
 
 class Engine(object):
@@ -35,12 +38,19 @@ class Engine(object):
 
     def on_end_epoch(self, training, model, criterion, data_loader, optimizer=None, display=True):
         loss = self.state.meter_loss.value()[0]
+        if training:
+            writer.add_scalar("Loss/Train", loss, self.state.epoch + 1)
+        else:
+            writer.add_scalar("Loss/Test", loss, self.state.epoch + 1)
+        writer.flush()
+
         if display:
             if training:
                 print('Epoch: [{0}]\t'
                       'Loss {loss:.4f}'.format(self.state.epoch, loss=loss))
             else:
                 print('Test: \t Loss {loss:.4f}'.format(loss=loss))
+
         return loss
 
     def on_start_batch(self, training, model, criterion, data_loader, optimizer=None, display=True):
@@ -57,6 +67,7 @@ class Engine(object):
             batch_time = self.state.batch_time.value()[0]
             data_time = self.state.data_time.value()[0]
             if training:
+                writer.add_scalar("Iteration Loss/Train", loss, self.state.iteration + 1)
                 print('Epoch: [{0}][{1}/{2}]\t'
                       'Time {batch_time_current:.3f} ({batch_time:.3f})\t'
                       'Data {data_time_current:.3f} ({data_time:.3f})\t'
@@ -67,6 +78,7 @@ class Engine(object):
                     data_time=data_time, loss_current=self.state.loss_batch, loss=loss)
                 )
             else:
+                writer.add_scalar("Iteration Loss/Test", loss, self.state.iteration + 1)
                 print('Test: [{0}/{1}]\t'
                       'Time {batch_time_current:.3f} ({batch_time:.3f})\t'
                       'Data {data_time_current:.3f} ({data_time:.3f})\t'
@@ -75,6 +87,8 @@ class Engine(object):
                     batch_time=batch_time, data_time_current=self.state.data_time_batch,
                     data_time=data_time, loss_current=self.state.loss_batch, loss=loss)
                 )
+
+            writer.flush()
 
     def on_forward(self, training, model, criterion, optimizer=None):
 
@@ -109,7 +123,6 @@ class Engine(object):
                 self.state.loss = self.state.loss + torch.mean(
                     torch.mul(mask, criterion(self.state.output[i], target_var)))
 
-        if training:
             optimizer.zero_grad()
             self.state.loss.backward()
 
@@ -137,7 +150,7 @@ class Engine(object):
                 normalize,
             ])
 
-        self.state.best_score = 0  # (mhassan) Why it is here and what's the use?
+        self.state.best_score = 0
 
     def learning(self, model, criterion, train_dataset, val_dataset, optimizer=None):
         self.init_learning(model)
