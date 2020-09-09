@@ -66,18 +66,28 @@ def read_object_labels_csv(file, header=True):
 
 
 class XrayClassification(data.Dataset):
-    def __init__(self, root, set, transform=None, target_transform=None):
+    def __init__(self, root, set, subset, transform=None, target_transform=None):
+        """
+        Dataset loader
+        Parameters
+        ----------
+        root: Root directory of the dataset
+        set: "train" or "test" set
+        subset: One of the subsets of the dataset e.g., "10"/"100"/"1000"
+        transform: Apply transformation or not? (is it boolean?)
+        target_transform: Apply transformation to the target values (is it boolean?)
+        """
         self.root = root
         self.path_devkit = os.path.join(root)
         self.path_images = os.path.join(root, 'JPEGImage')
         self.set = set
+        self.subset = subset
         self.transform = transform
         self.target_transform = target_transform
 
-        # define path of csv file
-        path_csv = os.path.join(self.root, 'ImageSet', '1000')
         # define filename of csv file
-        file_csv = os.path.join(path_csv, set + '.csv')
+        csv_file_dir = os.path.join(self.root, 'ImageSet', self.subset)
+        file_csv = os.path.join(csv_file_dir, set + '.csv')
 
         # create the csv file if necessary
         # (hassanmohsin) Following block is broken, so commenting out
