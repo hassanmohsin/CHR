@@ -14,7 +14,7 @@
 ## Usage
 1. Clone the CHR repository: 
     ```bash
-    git clone https://github.com/MeioJane/CHR.git
+    git clone https://github.com/hassanmohsin/CHR.git
     ```
 
 2. Run the training demo: 
