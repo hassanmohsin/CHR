@@ -13,7 +13,7 @@ import torchvision.transforms as transforms
 from torch.utils.tensorboard import SummaryWriter
 from tqdm import tqdm
 
-from CHR.util import AveragePrecisionMeter, Warp
+from chr.util import AveragePrecisionMeter, Warp
 
 writer = SummaryWriter("./tensorboard_logs")
 

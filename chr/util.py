@@ -172,6 +172,6 @@ class AveragePrecisionMeter(object):
             total_count += 1
             if label == 1:
                 precision_at_i += pos_count / total_count
-        if pos_count==0: pos_count = 1e-8  # Adding a very small number to avoid division-by-zero
+        if pos_count == 0: pos_count = 1e-8  # Adding a very small number to avoid division-by-zero
         precision_at_i /= pos_count
         return precision_at_i

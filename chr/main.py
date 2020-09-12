@@ -4,9 +4,9 @@ import json
 import torch
 from torch.nn.modules.loss import _WeightedLoss
 
-from CHR.engine import MultiLabelMAPEngine
-from CHR.models import resnet101_CHR
-from CHR.ray import XrayClassification
+from chr.engine import MultiLabelMAPEngine
+from chr.models import resnet101_CHR
+from chr.ray import XrayClassification
 
 
 class LoadConfig:
