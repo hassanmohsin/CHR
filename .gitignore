@@ -1,7 +1,7 @@
 .idea/
 .venv/
 __pycache__/
-log
 *.pyc
 models*/
 log*
+tensorboard_logs/
