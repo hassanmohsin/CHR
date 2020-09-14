@@ -27,10 +27,6 @@ class Engine(object):
         self.state.batch_time = tnt.meter.AverageValueMeter()
         self.state.data_time = tnt.meter.AverageValueMeter()
 
-    def _state(self, name):
-        if name in self.state:
-            return self.state.name
-
     def on_start_epoch(self, training, model, criterion, data_loader, optimizer=None, display=True):
         self.state.meter_loss.reset()
         self.state.batch_time.reset()
@@ -42,7 +38,6 @@ class Engine(object):
             writer.add_scalar("Loss/Train", loss, self.state.epoch + 1)
         else:
             writer.add_scalar("Loss/Test", loss, self.state.epoch + 1)
-        writer.flush()
 
         if display:
             if training:
@@ -57,7 +52,6 @@ class Engine(object):
         pass
 
     def on_end_batch(self, training, model, criterion, data_loader, optimizer=None, display=True):
-
         # record loss
         self.state.loss_batch = self.state.loss.data
         self.state.meter_loss.add(self.state.loss_batch.cpu())
@@ -78,7 +72,7 @@ class Engine(object):
                     data_time=data_time, loss_current=self.state.loss_batch, loss=loss)
                 )
             else:
-                writer.add_scalar("Iteration Loss/Test", loss, self.state.iteration + 1)
+                writer.add_scalar('Iteration Loss/Test', loss, self.state.iteration + 1)
                 print('Test: [{0}/{1}]\t'
                       'Time {batch_time_current:.3f} ({batch_time:.3f})\t'
                       'Data {data_time_current:.3f} ({data_time:.3f})\t'
@@ -91,38 +85,30 @@ class Engine(object):
             writer.flush()
 
     def on_forward(self, training, model, criterion, optimizer=None):
-
-        input_var = torch.autograd.Variable(self.state.input)
-        target_var = torch.autograd.Variable(self.state.target)
-
-        if not training:
-            input_var.volatile = True
-            target_var.volatile = True
-
         # compute output
-        self.state.output = model(input_var)
+        self.state.output = model(self.state.input)
+
+        self.state.loss = 0
+        for i in range(3):
+            output_1 = self.state.output[i].data
+            n_class = output_1.size(1)
+            n_batch = output_1.size(0)
+            n_data = np.ones((n_batch, n_class))
+            n_target = 1 - self.state.target.data.cpu().numpy()
+            n_output = output_1.cpu().numpy()
+            index = np.where(n_output < -20)
+            if len(index) == 0:
+                self.state.loss = self.state.loss + torch.mean(criterion(self.state.output[i], self.state.target))
+                continue
+            n_data[index] = 0
+            n_data = 1 - n_data
+            n_data = torch.autograd.Variable(torch.from_numpy(n_data)).float().cuda()
+            n_target = torch.autograd.Variable(torch.from_numpy(n_target)).cuda()
+            mask = 1 - torch.mul(n_data, n_target)
+            self.state.loss = self.state.loss + torch.mean(
+                torch.mul(mask, criterion(self.state.output[i], self.state.target)))
 
         if training:
-            self.state.loss = 0
-            for i in range(3):
-                output_1 = self.state.output[i].data
-                n_class = output_1.size(1)
-                n_batch = output_1.size(0)
-                n_data = np.ones((n_batch, n_class))
-                n_target = 1 - target_var.data.cpu().numpy()
-                n_output = output_1.cpu().numpy()
-                index = np.where(n_output < -20)
-                if len(index) == 0:
-                    self.state.loss = self.state.loss + torch.mean(criterion(self.state.output[i], target_var))
-                    continue
-                n_data[index] = 0
-                n_data = 1 - n_data
-                n_data = torch.autograd.Variable(torch.from_numpy(n_data)).float().cuda()
-                n_target = torch.autograd.Variable(torch.from_numpy(n_target)).cuda()
-                mask = 1 - torch.mul(n_data, n_target)
-                self.state.loss = self.state.loss + torch.mean(
-                    torch.mul(mask, criterion(self.state.output[i], target_var)))
-
             optimizer.zero_grad()
             self.state.loss.backward()
 
@@ -268,30 +254,31 @@ class Engine(object):
             data_loader = tqdm(data_loader, desc='Test')
 
         end = time.time()
-        for i, (input, target) in enumerate(data_loader):
-            # measure data loading time
-            self.state.iteration = i
-            self.state.data_time_batch = time.time() - end
-            self.state.data_time.add(self.state.data_time_batch)
+        with torch.no_grad():
+            for i, (input, target) in enumerate(data_loader):
+                # measure data loading time
+                self.state.iteration = i
+                self.state.data_time_batch = time.time() - end
+                self.state.data_time.add(self.state.data_time_batch)
 
-            self.state.input = input
-            self.state.target = target
+                self.state.input = input
+                self.state.target = target
 
-            self.on_start_batch(False, model, criterion, data_loader)
+                self.on_start_batch(False, model, criterion, data_loader)
 
-            if self.state.use_gpu:
-                self.state.target = self.state.target.cuda()
+                if self.state.use_gpu:
+                    self.state.target = self.state.target.cuda()
 
-                self.on_forward(False, model, criterion)
+                    self.on_forward(False, model, criterion)
 
-                # measure elapsed time
-                self.state.batch_time_current = time.time() - end
-                self.state.batch_time.add(self.state.batch_time_current)
-                end = time.time()
-                # measure accuracy
-                self.on_end_batch(False, model, criterion, data_loader)
+                    # measure elapsed time
+                    self.state.batch_time_current = time.time() - end
+                    self.state.batch_time.add(self.state.batch_time_current)
+                    end = time.time()
+                    # measure accuracy
+                    self.on_end_batch(False, model, criterion, data_loader)
 
-            score = self.on_end_epoch(False, model, criterion, data_loader)
+                score = self.on_end_epoch(False, model, criterion, data_loader)
 
             return score
 
@@ -475,7 +462,7 @@ class MultiLabelMAPEngine(Engine):
             else:
                 # print(self.args['ap_meter'].value())
 
-                print('Test: \t Loss {loss:.4f}\t  mAP {map:.3f}'.format(loss=loss.cpu().numpy()[0], map=map))
+                print('Test: \t Loss {loss:.4f}\t  mAP {map:.3f}'.format(loss=loss.cpu().numpy(), map=map))
 
         return map
 
