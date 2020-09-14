@@ -5,3 +5,4 @@ __pycache__/
 models*/
 log*
 tensorboard_logs/
+*log
