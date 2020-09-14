@@ -104,6 +104,13 @@ class XrayClassification(data.Dataset):
         self.classes = object_categories
         self.images = read_object_labels_csv(file_csv)
 
+        # Remove missing images
+        with open(os.path.join(self.root, 'ImageSet', "missing_files.txt")) as f:
+            missing_images = f.read().splitlines()
+        # remove extensions
+        missing_images = [im.split('.')[0] for im in missing_images]
+        self.images = [im for im in self.images if im[0] not in missing_images]
+
         print('[dataset] X-ray classification set=%s number of classes=%d  number of images=%d' % (
             set, len(self.classes), len(self.images)))
 
