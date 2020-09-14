@@ -1,6 +1,6 @@
 {
   "data": "/home/mhassan/projects/dataset",
-  "subset": "100",
+  "subset": "10",
   "save_model_path": "./models",
   "image_size": 224,
   "workers": 8,
